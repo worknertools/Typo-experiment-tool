@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Type play</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>艺术图形生成器 Pro - 自由移动版</title>
+    <style>
+        body { 
+            background: #E1F4D1; color: #1a1a1a; 
+            font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif; 
+            margin: 0; padding: 0; display: flex; width: 100vw; height: 100vh; overflow: hidden; 
+            flex-direction: row; 
+        }
+        .sidebar {
+            width: 360px; height: 100vh; background: #FEF9A3; 
+            display: flex; flex-direction: column; overflow-y: auto;
+            padding: 25px 25px; box-sizing: border-box; z-index: 10;
+        }
+
+        .panel { display: flex; flex-direction: column; gap: 20px; }
+        .ctrl { display: flex; flex-direction: column; gap: 4px; }
+        .ctrl label:first-child { 
+            font-size: 11px; font-weight: bold; color: #000; 
+            display: flex; justify-content: space-between; align-items: center; text-transform: uppercase;
+        }
+
+        .btn-group { display: flex; width: 100%; gap: 0; }
+        .tab-btn {
+            flex: 1; background: #fff; border: none; padding: 10px; font-size: 10px; font-weight: bold;
+            cursor: pointer; text-align: center; transition: all 0.1s; border-radius: 0;
+        }
+        .tab-btn.active { background: #000; color: #fff; }
+
+        .btn-white {
+            background: #fff; border: none; padding: 10px; font-size: 12px; font-weight: bold;
+            width: 100%; box-sizing: border-box; border-radius: 0; outline: none; cursor: pointer; text-align: center;
+            font-family: inherit; transition: all 0.2s ease;
+        }
+        .btn-white:hover { background: #000; color: #fff; }
+
+        textarea { 
+            background: #fff; border: none; padding: 10px; font-size: 12px; font-weight: bold;
+            width: 100%; box-sizing: border-box; border-radius: 0; outline: none;
+            height: 70px; text-align: left; resize: none; font-family: inherit;
+        }
+        
+        input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 1px; background: rgba(0,0,0,0.2); margin: 12px 0; outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 14px; height: 14px; background: #000; border-radius: 50%; cursor: pointer; border: none;
+        }
+        
+        .color-ctrl-group { display: flex; background: #fff; height: 35px; align-items: center; }
+        .color-block { width: 50%; height: 100%; cursor: pointer; border: none; }
+        .hex-input { 
+            width: 50%; text-align: center; font-size: 12px; font-weight: bold; border: none; 
+            outline: none; background: transparent; height: 100%; text-transform: uppercase;
+        }
+        
+        .export-group { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .btn-black { 
+            background: #000; color: #fff; border: none; padding: 14px; font-weight: bold; font-size: 12px; 
+            cursor: pointer; text-transform: uppercase; margin-top: 5px; transition: opacity 0.2s;
+        }
+        .btn-black:hover { opacity: 0.8; }
+        
+        .footer-text { margin-top: auto; padding-top: 20px; text-align: center; font-size: 10px; color: rgba(0,0,0,0.4); font-weight: bold; letter-spacing: 0.5px; }
+        
+        .canvas-area { 
+            flex: 1; position: relative; overflow: hidden; 
+            display: flex; justify-content: center; align-items: center; 
+            background: #E1F4D1; cursor: default !important;
+        }
+        #canvas-wrapper { position: relative; }
+        svg { 
+            display: block; shape-rendering: geometricPrecision; background: #fff; 
+            user-select: none; -webkit-user-select: none;
+            overflow: hidden; 
+        }
+        .draggable-text { cursor: move !important; }
+        .selection-frame { pointer-events: none; }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <div class="panel">
+        <div class="ctrl">
+            <label><span>输入内容 (TEXT)</span></label>
+            <textarea id="textInput" spellcheck="false">ACID FLOW</textarea>
+        </div>
+        <div class="ctrl">
+            <label>画布比例 (RATIO)</label>
+            <div class="btn-group">
+                <button class="tab-btn active" onclick="setRatio('full', this)">FULL</button>
+                <button class="tab-btn" onclick="setRatio('3:4', this)">3:4</button>
+            </div>
+        </div>
+
+        <div class="ctrl">
+            <label>布局离散度 <span class="val-num" id="val-chaos">60</span></label>
+            <input type="range" id="range-chaos" min="0" max="100" value="60">
+        </div>
+
+        <div class="ctrl">
+            <label>基础字号 <span class="val-num" id="val-size">180</span></label>
+            <input type="range" id="range-size" min="30" max="400" value="180">
+        </div>
+
+        <!-- 纵向拉伸度滑块功能已去掉 -->
+
+        <div class="ctrl">
+            <label>形态扭曲度 <span class="val-num" id="val-distortion">120</span></label>
+            <input type="range" id="range-distortion" min="0" max="600" value="120">
+        </div>
+
+        <div class="ctrl">
+            <label>字体颜色 (FONT COLOR)</label>
+            <div class="color-ctrl-group">
+                <input type="color" id="colorFont" value="#b0ff00" style="display:none">
+                <div id="colorFontBlock" class="color-block" style="background-color: #b0ff00;" onclick="document.getElementById('colorFont').click()"></div>
+                <input type="text" id="hexFontInput" class="hex-input" value="#B0FF00" maxlength="7">
+            </div>
+        </div>
+
+        <div class="ctrl">
+            <label>画布背景 (BACKGROUND)</label>
+            <div class="color-ctrl-group">
+                <input type="color" id="colorBg" value="#ffffff" style="display:none">
+                <div id="colorBgBlock" class="color-block" style="background-color: #ffffff;" onclick="document.getElementById('colorBg').click()"></div>
+                <input type="text" id="hexBgInput" class="hex-input" value="#FFFFFF" maxlength="7">
+            </div>
+        </div>
+
+        <div class="ctrl">
+            <label>导出渲染 (EXPORT)</label>
+            <div class="export-group">
+                <button class="btn-white" onclick="exportHighRes('jpg')">JPG</button>
+                <button class="btn-white" onclick="exportHighRes('png')">PNG</button>
+            </div>
+        </div>
+
+        <button class="btn-black" onclick="generateLayout(true)">随机布局 (RANDOM)</button>
+    </div>
+    <div class="footer-text">2026 design by Type Play.</div>
+</div>
+
+<div class="canvas-area" id="canvasArea">
+    <div id="canvas-wrapper">
+        <svg id="canvasSVG" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <filter id="acidFilter" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB">
+                    <feTurbulence id="turb" type="fractalNoise" baseFrequency="0.008" numOctaves="2" seed="1" result="warpNoise" />
+                    <feDisplacementMap id="map1" in="SourceGraphic" in2="warpNoise" scale="120" xChannelSelector="R" yChannelSelector="G" result="distorted" />
+                    <feTurbulence id="turbFine" type="turbulence" baseFrequency="0.05" numOctaves="1" seed="10" result="fineNoise" />
+                    <feDisplacementMap id="map2" in="distorted" in2="fineNoise" scale="14.4" xChannelSelector="R" yChannelSelector="B" result="liquid" />
+                    <feGaussianBlur in="liquid" stdDeviation="3" result="blur" />
+                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 25 -10" result="gooey" />
+                </filter>
+            </defs>
+            <rect id="svgBg" width="100%" height="100%" fill="#ffffff" />
+            <g id="mainGroup" filter="url(#acidFilter)"></g>
+            <g id="uiGroup" class="selection-frame"></g>
+        </svg>
+    </div>
+</div>
+<canvas id="exportCanvas" style="display:none;"></canvas>
+
+<script>
+    let currentW = 800, currentH = 1000;
+    let currentFontColor = '#b0ff00';
+    let textData = [];
+    let currentRatio = 'full';
+    let isComposing = false;
+    let selectedIdx = -1;
+    let isDragging = false;
+    let dragOffsetX = 0, dragOffsetY = 0;
+    let renderTimer = null; 
+    let isRequestingFrame = false; 
+
+    const svg = document.getElementById('canvasSVG');
+    const mainGroup = document.getElementById('mainGroup');
+    const uiGroup = document.getElementById('uiGroup');
+    const svgBg = document.getElementById('svgBg');
+    const textInput = document.getElementById('textInput');
+    const state = { fontSize: 180, chaos: 60, stretch: 1.5, distortion: 120, bg: '#ffffff' };
+
+    function applyStyles() {
+        const m1 = document.getElementById('map1');
+        const m2 = document.getElementById('map2');
+        if(m1) m1.setAttribute('scale', state.distortion);
+        if(m2) m2.setAttribute('scale', state.distortion * 0.12);
+
+        const nodes = mainGroup.querySelectorAll('text');
+        nodes.forEach((node, i) => {
+            const data = textData[i];
+            if(!data) return;
+            node.setAttribute("font-size", state.fontSize);
+            node.setAttribute("fill", currentFontColor);
+            node.setAttribute("transform", `translate(${data.x}, ${data.y}) rotate(${data.rotation}) scale(1, ${state.stretch})`);
+        });
+
+        uiGroup.innerHTML = '';
+        if (selectedIdx !== -1 && textData[selectedIdx]) drawSelectionUI(textData[selectedIdx]);
+    }
+
+    function generateLayout(isRandomClick = false) {
+        if (isRandomClick) {
+            const palettes = [{ bg: '#FF8AD8', font: '#70FFC4' }, { bg: '#A47BFF', font: '#F0FF00' }, { bg: '#FF9B42', font: '#00D1FF' }, { bg: '#B0FF00', font: '#FF00F5' }];
+            const pair = palettes[Math.floor(Math.random() * palettes.length)];
+            state.bg = pair.bg; currentFontColor = pair.font;
+            updateUIControls();
+            document.getElementById('turb').setAttribute('seed', Math.floor(Math.random()*1000));
+        }
+
+        // 修改点：过滤所有空格、制表符、换行符，不影响字体效果
+        const cleanText = textInput.value.replace(/\s/g, ''); 
+        const chars = Array.from(cleanText);
+        textData = chars.map(char => ({
+            char,
+            x: currentW * 0.2 + Math.random() * currentW * 0.6,
+            y: currentH * 0.2 + Math.random() * currentH * 0.6,
+            rotation: (Math.random() - 0.5) * 180 * (state.chaos / 100)
+        }));
+
+        mainGroup.innerHTML = '';
+        textData.forEach((data, i) => {
+            const textNode = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            textNode.textContent = data.char;
+            textNode.setAttribute("text-anchor", "middle");
+            textNode.setAttribute("dominant-baseline", "central");
+            textNode.setAttribute("font-weight", "900");
+            textNode.setAttribute("fill", currentFontColor);
+            textNode.setAttribute("font-family", '"PingFang SC", "Microsoft YaHei", sans-serif');
+            textNode.classList.add("draggable-text");
+            textNode.addEventListener('mousedown', (e) => startDrag(e, i));
+            mainGroup.appendChild(textNode);
+        });
+        applyStyles();
+    }
+
+    function startDrag(e, index) {
+        e.preventDefault(); e.stopPropagation();
+        selectedIdx = index; isDragging = true;
+        const pt = svg.createSVGPoint();
+        pt.x = e.clientX; pt.y = e.clientY;
+        const coords = pt.matrixTransform(svg.getScreenCTM().inverse());
+        dragOffsetX = coords.x - textData[index].x;
+        dragOffsetY = coords.y - textData[index].y;
+        applyStyles();
+    }
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging || selectedIdx === -1) return;
+        const pt = svg.createSVGPoint();
+        pt.x = e.clientX; pt.y = e.clientY;
+        const coords = pt.matrixTransform(svg.getScreenCTM().inverse());
+        textData[selectedIdx].x = Math.max(0, Math.min(currentW, coords.x - dragOffsetX));
+        textData[selectedIdx].y = Math.max(0, Math.min(currentH, coords.y - dragOffsetY));
+        applyStyles();
+    });
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    function updateUIControls() {
+        document.getElementById('colorFontBlock').style.backgroundColor = currentFontColor;
+        document.getElementById('colorFont').value = currentFontColor;
+        document.getElementById('hexFontInput').value = currentFontColor.toUpperCase();
+        document.getElementById('colorBgBlock').style.backgroundColor = state.bg;
+        document.getElementById('colorBg').value = state.bg;
+        document.getElementById('hexBgInput').value = state.bg.toUpperCase();
+        svgBg.setAttribute('fill', state.bg);
+    }
+
+    // 色值复制数字亦可改变色彩效果
+    function handleHexSync(e, type) {
+        let val = e.target.value.trim();
+        if (val && val.indexOf('#') !== 0) val = '#' + val;
+        if (/^#[0-9A-F]{6}$/i.test(val)) {
+            if (type === 'font') { currentFontColor = val; applyStyles(); } 
+            else { state.bg = val; svgBg.setAttribute('fill', state.bg); }
+            updateUIControls();
+        }
+    }
+    document.getElementById('hexFontInput').oninput = e => handleHexSync(e, 'font');
+    document.getElementById('hexBgInput').oninput = e => handleHexSync(e, 'bg');
+    
+    document.getElementById('colorFont').oninput = e => { currentFontColor = e.target.value; updateUIControls(); applyStyles(); };
+    document.getElementById('colorBg').oninput = e => { state.bg = e.target.value; updateUIControls(); };
+
+    function setRatio(val, btn) {
+        currentRatio = val;
+        btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const cArea = document.getElementById('canvasArea');
+        if (val === '3:4') { 
+            let h = cArea.clientHeight * 0.9, w = h * 0.75;
+            if(w > cArea.clientWidth * 0.9) { w = cArea.clientWidth * 0.9; h = w / 0.75; }
+            currentW = w; currentH = h;
+        } else { currentW = cArea.clientWidth; currentH = cArea.clientHeight; }
+        const wrapper = document.getElementById('canvas-wrapper');
+        wrapper.style.width = currentW + 'px'; wrapper.style.height = currentH + 'px';
+        svg.setAttribute("viewBox", `0 0 ${currentW} ${currentH}`);
+        generateLayout(); 
+    }
+
+    function drawSelectionUI(data) {
+        const size = state.fontSize;
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("transform", `translate(${data.x}, ${data.y}) rotate(${data.rotation})`);
+        const w = size * 0.6, h = size * state.stretch * 0.7;
+        [[-w/2, -h/2], [w/2, -h/2], [-w/2, h/2], [w/2, h/2]].forEach(pos => {
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("cx", pos[0]); circle.setAttribute("cy", pos[1]);
+            circle.setAttribute("r", "4"); circle.setAttribute("fill", "#fff"); circle.setAttribute("stroke", "#000");
+            g.appendChild(circle);
+        });
+        uiGroup.appendChild(g);
+    }
+
+    ['chaos', 'size', 'distortion'].forEach(id => {
+        document.getElementById(`range-${id}`).oninput = (e) => {
+            const val = e.target.value;
+            document.getElementById(`val-${id}`).textContent = val;
+            if(id === 'size') state.fontSize = parseInt(val);
+            else if(id === 'chaos') state.chaos = val;
+            else if(id === 'distortion') state.distortion = parseInt(val);
+            if (!isRequestingFrame) {
+                isRequestingFrame = true;
+                requestAnimationFrame(() => {
+                    if(id === 'chaos') generateLayout(); else applyStyles();
+                    isRequestingFrame = false;
+                });
+            }
+        };
+    });
+
+    // 优化：文本框输入丝滑流畅，增加防抖间隔，过滤空格换行
+    textInput.oninput = () => { 
+        if (isComposing) return;
+        clearTimeout(renderTimer);
+        // 增加到 250ms，确保打字时不会因为滤镜重绘而卡顿
+        renderTimer = setTimeout(() => {
+            requestAnimationFrame(() => generateLayout());
+        }, 250); 
+    };
+    textInput.addEventListener('compositionstart', () => isComposing = true);
+    textInput.addEventListener('compositionend', () => { 
+        isComposing = false; 
+        generateLayout(); 
+    });
+
+    async function exportHighRes(fmt) {
+        const exportW = 3508; 
+        const exportH = (currentH / currentW) * exportW;
+        const clone = svg.cloneNode(true);
+        const uiClone = clone.querySelector('#uiGroup');
+        if(uiClone) uiClone.innerHTML = '';
+        const bgClone = clone.querySelector('#svgBg');
+        if (fmt === 'png') bgClone.setAttribute('fill', 'none');
+        else bgClone.setAttribute('fill', state.bg);
+        clone.setAttribute('width', exportW); clone.setAttribute('height', exportH);
+        const svgData = new XMLSerializer().serializeToString(clone);
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+        const eCanvas = document.getElementById('exportCanvas');
+        const eCtx = eCanvas.getContext('2d');
+        eCanvas.width = exportW; eCanvas.height = exportH;
+        const img = new Image();
+        img.onload = () => {
+            eCtx.clearRect(0, 0, exportW, exportH);
+            if (fmt === 'jpg') { eCtx.fillStyle = state.bg; eCtx.fillRect(0, 0, exportW, exportH); }
+            eCtx.imageSmoothingEnabled = true; eCtx.imageSmoothingQuality = 'high';
+            eCtx.drawImage(img, 0, 0, exportW, exportH);
+            const link = document.createElement('a');
+            link.download = `Acid-Art-${Date.now()}.${fmt}`;
+            link.href = eCanvas.toDataURL(fmt === 'png' ? 'image/png' : 'image/jpeg', 0.95);
+            link.click();
+            URL.revokeObjectURL(url);
+        };
+        img.src = url;
+    }
+
+    window.onresize = () => setRatio(currentRatio, document.querySelector('.tab-btn.active'));
+    setRatio('full', document.querySelector('.tab-btn.active'));
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
